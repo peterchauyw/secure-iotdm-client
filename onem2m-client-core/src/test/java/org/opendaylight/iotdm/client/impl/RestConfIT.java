@@ -12,14 +12,14 @@ public class RestConfIT {
         RestConf.send("", RestConf.PAYLOAD, RestConf.USERNAME, RestConf.PASSWORD);
     }
 
-    @Test
+/*    @Test
     public void restConf_with_wrong_url(){
         String wrongUrl="http://localhost:8181/rest/operations/onem2m:onem2m-cse-provisioning/";
         String str=RestConf.send(wrongUrl, RestConf.PAYLOAD, RestConf.USERNAME, RestConf.PASSWORD);
-        Assert.assertTrue("Result payload should contains Error 405",str.contains("Error 405 HTTP method POST is not supported"));
+        Assert.assertTrue("Result payload should contains Error 405", str.contains("Error 405 HTTP method POST is not supported"));
     }
 
-    @Test
+      @Test
     public void restConf(){
         String provisionResult=RestConf.defaultProvision();
         String clearResult=RestConf.defaultClear();
@@ -35,4 +35,13 @@ public class RestConfIT {
         Assert.assertTrue("First result payload should contains error",!provisionResult1.contains("error"));
         Assert.assertTrue("Second result payload should contains error",provisionResult2.contains("error"));
     }
+*/
+    @Test
+    public void provision(){
+        String url="http://10.195.70.69:8181/restconf/operations/onem2m:onem2m-cse-provisioning";
+        String response=RestConf.send(url, RestConf.PAYLOAD, RestConf.USERNAME, RestConf.PASSWORD);
+        System.out.println(response);
+    }
+
 }
+

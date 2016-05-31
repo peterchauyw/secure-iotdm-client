@@ -4,6 +4,7 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.util.StringContentProvider;
 import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.onem2m.xml.protocols.PrimitiveContent;
 import org.opendaylight.iotdm.client.Request;
 import org.opendaylight.iotdm.client.Response;
@@ -13,9 +14,19 @@ import org.opendaylight.iotdm.client.util.Json;
 import org.opendaylight.iotdm.constant.OneM2M;
 
 import java.math.BigInteger;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+
+import org.eclipse.jetty.util.ssl.SslContextFactory;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManager;
 
 
 /**
@@ -30,9 +41,67 @@ public class Http implements Client {
     public static final String DELETE_IN_HTTP = "delete";
     public static final String NOTIFY_IN_HTTP = "post";
 
-    private static HttpClient httpClient = new HttpClient();
-//    private static Server httpServer=new Server(PORT);
+    private static final String TRUST_STORE_PASSWORD = "storepwd";
+    private static final String KEY_STORE_PASSWORD = "storepwd";
+    private static final String KEY_STORE_LOCATION = "src/test/java/org/opendaylight/iotdm/client/certs/jettykeystore";
+    private static final String TRUST_STORE_LOCATION = "src/test/java/org/opendaylight/iotdm/client/certs/jettykeystore";
 
+//    private static final String TRUST_STORE_PASSWORD = "rootPass";
+//    private final static String KEY_STORE_PASSWORD = "endPass";
+//    private static final String KEY_STORE_LOCATION = "src/test/java/org/opendaylight/iotdm/client/certs/keyStore.jks";
+//    private static final String TRUST_STORE_LOCATION = "src/test/java/org/opendaylight/iotdm/client/certs/trustStore.jks";
+//    private static final String KEY_MANAGER_PASSWORD = "OBF:1u2u1wml1z7s1z7a1wnl1u2g";
+
+    private static HttpClient httpClient;
+//    private static Server httpServer=new Server(PORT);
+    private void construct(){
+        httpClient = new HttpClient();
+    }
+    public Http(){
+        construct();
+    }
+    public Http(Boolean security){
+        if (security == false) {
+            construct();
+        }
+        else{
+//            try {
+                // Instantiate and configure the SslContextFactory
+                SslContextFactory sslContextFactory = new SslContextFactory(KEY_STORE_LOCATION);
+                sslContextFactory.setEndpointIdentificationAlgorithm("");
+                sslContextFactory.setKeyStorePassword(KEY_STORE_PASSWORD);
+                sslContextFactory.setTrustStorePath(TRUST_STORE_LOCATION);
+                sslContextFactory.setTrustStorePassword(TRUST_STORE_PASSWORD);
+                sslContextFactory.setKeyManagerPassword("keypwd");
+//                sslContextFactory.setIncludeProtocols("TLSv1.2");
+
+//                sslContextFactory.setKeyManagerPassword(KEY_MANAGER_PASSWORD);
+//                sslContextFactory.setNeedClientAuth(false);
+//                sslContextFactory.setWantClientAuth(false);
+
+//                sslContextFactory.setCertAlias("client");
+//                sslContextFactory.setEndpointIdentificationAlgorithm("HTTPS");
+//                SSLContext context = SSLContext.getInstance("TLS");
+//                context.init(null, new TrustManager[]{new TrustEverythingTrustManager()}, new SecureRandom());
+//                SSLEngine engine = context.createSSLEngine();
+//                engine.setNeedClientAuth(sslContextFactory.getNeedClientAuth());
+//                engine.setEnabledCipherSuites(engine.getSupportedCipherSuites());
+//                engine.setEnabledProtocols(engine.getSupportedProtocols());
+//                sslContextFactory.setSslContext(context);
+//                sslContextFactory.setEndpointIdentificationAlgorithm(null);             // Instantiate HttpClient with the SslContextFactory
+
+                QueuedThreadPool clientThreads = new QueuedThreadPool();
+                clientThreads.setName("client");
+                httpClient = new HttpClient(sslContextFactory);
+                httpClient.setExecutor(clientThreads);
+
+//            }catch (NoSuchAlgorithmException e) {
+//                // do nothing
+//            }catch (KeyManagementException e) {
+//                // do nothing
+//            }
+        }
+    }
 
     @Override
     public void start() {

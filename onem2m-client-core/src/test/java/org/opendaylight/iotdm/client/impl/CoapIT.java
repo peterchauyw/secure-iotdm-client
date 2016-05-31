@@ -18,20 +18,20 @@ import java.util.concurrent.TimeUnit;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CoapIT {
-    static Client client=new Coap();
-    ITCase itCase=new ITCase(client,RestConf.HOST,5683,1000);
+    static Client client = new Coap();
+    ITCase itCase = new ITCase(client, RestConf.HOST, 5683, 1000);
 
-    @BeforeClass
-    public static void suitUp() {
-        RestConf.defaultProvision();
-        client.start();
-    }
-
-    @AfterClass
-    public static void suitDown() {
-        RestConf.defaultClear();
-        client.stop();
-    }
+//    @BeforeClass
+//    public static void suitUp() {
+//        RestConf.defaultProvision();
+//        client.start();
+//    }
+//
+//    @AfterClass
+//    public static void suitDown() {
+//        RestConf.defaultClear();
+//        client.stop();
+//    }
 
     @Test
     public void test_1_create_ae() {
@@ -54,27 +54,27 @@ public class CoapIT {
     }
 
     @Test
-    public void test_5_create_ae_without_request_mandatory_attribute_request_identifier_and_result_expect_error(){
+    public void test_5_create_ae_without_request_mandatory_attribute_request_identifier_and_result_expect_error() {
         itCase.create_ae_without_mandatory_attribute_request_identifier_and_result_expect_error();
     }
 
     @Test
-    public void test_6_create_ae_without_request_mandatory_attribute_from_and_result_expect_error(){
+    public void test_6_create_ae_without_request_mandatory_attribute_from_and_result_expect_error() {
         itCase.create_ae_without_mandatory_attribute_from_and_result_expect_error();
     }
 
     @Test
-    public void test_7_create_ae_without_mandatory_attribute_resource_type_and_result_expect_error(){
+    public void test_7_create_ae_without_mandatory_attribute_resource_type_and_result_expect_error() {
         itCase.create_ae_without_mandatory_attribute_resource_type_and_result_expect_error();
     }
 
     @Test
-    public void test_8_create_ae_with_wrong_resource_type_and_result_expect_error(){
+    public void test_8_create_ae_with_wrong_resource_type_and_result_expect_error() {
         itCase.create_ae_with_wrong_resource_type_and_result_expect_error();
     }
 
     @Test
-    public void test_9_update_ae_with_resource_type_and_result_expect_error(){
+    public void test_9_update_ae_with_resource_type_and_result_expect_error() {
         itCase.update_ae_with_resource_type_and_result_expect_error();
     }
 
@@ -132,4 +132,41 @@ public class CoapIT {
 //        Response response=client.send(request);
 //        System.out.println(Json.newInstance().toJson(response.getPrimitiveContent()));
 //    }
+
+    //DTLS needs bigger timeout
+    @Test
+    public void test_dtls_getAE() {
+        Request request = new Request()
+                .timeout(3000, TimeUnit.MILLISECONDS)
+                .port(5684)
+                .host("localhost")
+                .to("ODL-oneM2M-Cse/TestAE")
+                .operation(OneM2M.Operation.RETRIEVE)
+                .from("localhost")
+                .requestIdentifier("1234");
+
+        Response response = client.send(request);
+        System.out.println(Json.newInstance().toJson(response.getPrimitiveContent()));
+    }
+
+
+    @Test
+    public void test_dtls_create_container() {
+        Cnt container = new Cnt();
+        container.setOr("iphone");
+        Request request = new Request()
+                .timeout(3000, TimeUnit.MILLISECONDS)
+                .to("ODL-oneM2M-Cse")
+                .port(5684)
+                .host("localhost")
+                .operation(OneM2M.Operation.CREATE)
+                .resourceType(OneM2M.ResourceType.CONTAINER)
+                .from("localhost")
+                .name("Container")
+                .requestIdentifier("12345")
+                .addPrimitiveContent(container);
+
+        Response response = client.send(request);
+        System.out.println(Json.newInstance().toJson(response.getPrimitiveContent()));
+    }
 }

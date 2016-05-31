@@ -26,7 +26,7 @@ public class RestConf {
             "        \"onem2m-primitive\": [\n" +
             "           {\n" +
             "                \"name\": \"CSE_ID\",\n" +
-            "                \"value\": \"InCSE1\"\n" +
+            "                \"value\": \"ODL-oneM2M-Cse\"\n" +
             "            },\n" +
             "            {\n" +
             "                \"name\": \"CSE_TYPE\",\n" +

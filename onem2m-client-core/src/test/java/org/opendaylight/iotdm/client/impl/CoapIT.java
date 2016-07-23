@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CoapIT {
-    static Client client = new Coap();
+    static Client client = new Coaps();
     ITCase itCase = new ITCase(client, RestConf.HOST, 5683, 1000);
 
 //    @BeforeClass

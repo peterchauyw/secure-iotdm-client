@@ -4,54 +4,43 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.util.StringContentProvider;
 import org.eclipse.jetty.http.HttpFields;
-import org.onem2m.xml.protocols.PrimitiveContent;
+import org.eclipse.jetty.http.HttpScheme;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.opendaylight.iotdm.client.Request;
 import org.opendaylight.iotdm.client.Response;
-import org.opendaylight.iotdm.client.api.Client;
 import org.opendaylight.iotdm.client.exception.Onem2mNoOperationError;
-import org.opendaylight.iotdm.client.util.Json;
+
 import org.opendaylight.iotdm.constant.OneM2M;
 
-import java.math.BigInteger;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 /**
- * Created by wenxshi on 3/30/15.
+ * Created by Peter Chau on 07/20/16.
  */
-public class Http implements Client {
+public class Https extends Http {
 
-    public static final int PORT = 8989;
-    public static final String CREATE_IN_HTTP = "post";
-    public static final String RETRIEVE_IN_HTTP = "get";
-    public static final String UPDATE_IN_HTTP = "put";
-    public static final String DELETE_IN_HTTP = "delete";
-    public static final String NOTIFY_IN_HTTP = "post";
+    private static final String TRUST_STORE_PASSWORD = "storepwd";
+    private static final String KEY_STORE_PASSWORD = "storepwd";
+    private static final String KEY_STORE_LOCATION = "src/test/java/org/opendaylight/iotdm/client/certs/jettykeystore";
+    private static final String TRUST_STORE_LOCATION = "src/test/java/org/opendaylight/iotdm/client/certs/jettykeystore";
 
-    protected static HttpClient httpClient = new HttpClient();
-//    private static Server httpServer=new Server(PORT);
+    public Https(){
+            SslContextFactory sslContextFactory = new SslContextFactory(KEY_STORE_LOCATION);
+            sslContextFactory.setEndpointIdentificationAlgorithm("");
+            sslContextFactory.setKeyStorePassword(KEY_STORE_PASSWORD);
+            sslContextFactory.setTrustStorePath(TRUST_STORE_LOCATION);
+            sslContextFactory.setTrustStorePassword(TRUST_STORE_PASSWORD);
+            sslContextFactory.setKeyManagerPassword("keypwd");
+            QueuedThreadPool clientThreads = new QueuedThreadPool();
+            clientThreads.setName("client");
+            httpClient = new HttpClient(sslContextFactory);
+            httpClient.setExecutor(clientThreads);
 
-
-    @Override
-    public void start() {
-        try {
-            httpClient.start();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
-
-    @Override
-    public void stop() {
-        try {
-            httpClient.stop();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     @Override
     public Response send(Request request) {
 
@@ -83,6 +72,7 @@ public class Http implements Client {
             addHeader(httpRequest.getHeaders(), requestHelper.getHeader());
             httpRequest.accept(requestHelper.getAcceptMIME());
             httpRequest.path(OneM2M.Path.toToPathMapping(requestHelper.getPath()));
+            httpRequest.scheme(HttpScheme.HTTPS.toString());
 
             switch (OneM2M.Operation.getEnum(requestHelper.getOp())) {
                 case CREATE:
@@ -133,51 +123,5 @@ public class Http implements Client {
         }
     }
 
-    public static class ResponseBuilder {
-        private Response response = null;
-
-        public ResponseBuilder(ContentResponse contentResponse) {
-            if (contentResponse == null) return;
-
-            OneM2M.ResponseStatusCodes responseStatusCode = null;
-            String requestIdentifier = null;
-            PrimitiveContent primitiveContent = null;
-            String to = null;
-            String from = null;
-            OneM2M.Time originatingTimestamp = null;
-            OneM2M.Time resultExpirationTimestamp = null;
-            OneM2M.StdEventCats eventCategory = null;
-
-            HttpFields responseHeader = contentResponse.getHeaders();
-            for (String key : responseHeader.getFieldNamesCollection()) {
-                switch (key) {
-                    case OneM2M.Http.Header.X_M2M_RSC:
-                        responseStatusCode = OneM2M.ResponseStatusCodes.getEnum(BigInteger.valueOf(responseHeader.getLongField(key)));
-                        break;
-                    case OneM2M.Http.Header.X_M2M_RI:
-                        requestIdentifier = responseHeader.get(key);
-                        break;
-                    case OneM2M.Http.Header.X_M2M_ORIGIN:
-                        from = responseHeader.get(key);
-                        break;
-                    case OneM2M.Http.Header.X_M2M_OT:
-                        originatingTimestamp = new OneM2M.Time(responseHeader.get(key));
-                        break;
-                    case OneM2M.Http.Header.X_M2M_RST:
-                        resultExpirationTimestamp = new OneM2M.Time(responseHeader.get(key));
-                        break;
-                    case OneM2M.Http.Header.X_M2M_EC:
-                        eventCategory = OneM2M.StdEventCats.getEnum(new BigInteger(responseHeader.get(key)));
-                }
-            }
-            String content = contentResponse.getContentAsString();
-            primitiveContent = Json.newInstance().fromJson(content, PrimitiveContent.class);
-
-            response = new Response(responseStatusCode, requestIdentifier, primitiveContent, to, from, originatingTimestamp, resultExpirationTimestamp, eventCategory);
-        }
-
-        public Response build() {
-            return response;
-        }
-    }
 }
+

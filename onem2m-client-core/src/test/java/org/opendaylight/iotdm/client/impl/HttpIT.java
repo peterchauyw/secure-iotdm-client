@@ -110,7 +110,7 @@ public class HttpIT {
 
     @Test
     public void SecureCreateAE() {
-        Client client = new Http(true);
+        Client client = new Https();
         //For coap, please uncomment code below
 //        Client client=new Coap();
         Request request = new Request()

@@ -25,6 +25,7 @@ public class Https extends Http {
 
     private static final String TRUST_STORE_PASSWORD = "storepwd";
     private static final String KEY_STORE_PASSWORD = "storepwd";
+    private static final String KEY_MANAGER_PASSWORD = "keypwd";
     private static final String KEY_STORE_LOCATION = "src/test/java/org/opendaylight/iotdm/client/certs/jettykeystore";
     private static final String TRUST_STORE_LOCATION = "src/test/java/org/opendaylight/iotdm/client/certs/jettykeystore";
 
@@ -34,7 +35,7 @@ public class Https extends Http {
             sslContextFactory.setKeyStorePassword(KEY_STORE_PASSWORD);
             sslContextFactory.setTrustStorePath(TRUST_STORE_LOCATION);
             sslContextFactory.setTrustStorePassword(TRUST_STORE_PASSWORD);
-            sslContextFactory.setKeyManagerPassword("keypwd");
+            sslContextFactory.setKeyManagerPassword(KEY_MANAGER_PASSWORD);
             QueuedThreadPool clientThreads = new QueuedThreadPool();
             clientThreads.setName("client");
             httpClient = new HttpClient(sslContextFactory);
